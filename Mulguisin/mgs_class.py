@@ -206,7 +206,7 @@ def mulguisin_type(dentype: str):
 				else:
 					den = get_density.spherical_density3d(positions,self.radius)
 				end = time()
-				print('Calculation is doen. Time = ', end - sta)
+				print('Calculation is done. Time = ', end - sta)
 				isort = np.flip(den.argsort())
 				return isort
 
