@@ -1,14 +1,14 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 
-cosmo = FlatLambdaCDM(
+default_cosmo = FlatLambdaCDM(
     H0=67.66,      
     Om0=0.3111,    
     Tcmb0=2.7255,  
     Ob0=0.049      
 )
 
-def radec_to_xyz(ra, dec, z, cosmo):
+def radec_to_xyz(ra, dec, z, cosmo=default_cosmo):
     """
     ra: degrees
     dec:  degrees
@@ -25,7 +25,7 @@ def radec_to_xyz(ra, dec, z, cosmo):
 
     return X, Y, Z
 
-def relative_xyz(ra, dec, z, ra0, dec0, z0, cosmo):
+def relative_xyz(ra, dec, z, ra0, dec0, z0, cosmo=default_cosmo):
 
     X, Y, Z = radec_to_xyz(ra, dec, z, cosmo)
     
