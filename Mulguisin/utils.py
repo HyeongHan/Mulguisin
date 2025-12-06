@@ -71,7 +71,11 @@ def alpha_shape(points, alpha=5):
     polys = polygonize([
         [points[e[0]], points[e[1]]] for e in edge_set
     ])
-    return unary_union(list(polys))
+    #return unary_union(list(polys))
+    EPS = 100
+    single_polygon = unary_union([p.buffer(EPS) for p in polys]).buffer(-EPS)
+    return single_polygon # this forcefully make multipolygon into polygon
+
 
 
 def tan_project(ra, dec, ra0, dec0):
