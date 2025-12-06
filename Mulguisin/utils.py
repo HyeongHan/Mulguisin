@@ -8,29 +8,33 @@ default_cosmo = FlatLambdaCDM(
     Ob0=0.049      
 )
 
-def radec_to_xyz(ra, dec, z, cosmo=default_cosmo):
-    """
-    ra: degrees
-    dec:  degrees
-    z: redshift 
-    """
+
+def tan_project(ra, dec, ra0, dec0):
     ra  = np.radians(ra)
     dec = np.radians(dec)
+    ra0 = np.radians(ra0)
+    dec0 = np.radians(dec0)
 
-    r = cosmo.comoving_distance(z).value  # Mpc
-
-    X = r * np.cos(dec) * np.cos(ra)
-    Y = r * np.cos(dec) * np.sin(ra)
-    Z = r * np.sin(dec)
-
-    return X, Y, Z
-
-def relative_xyz(ra, dec, z, ra0, dec0, z0, cosmo=default_cosmo):
-
-    X, Y, Z = radec_to_xyz(ra, dec, z, cosmo)
+    cosc = np.sin(dec0)*np.sin(dec) + np.cos(dec0)*np.cos(dec)*np.cos(ra - ra0)
     
-    # reference coordinate
-    X0, Y0, Z0 = radec_to_xyz(ra0, dec0, z0, cosmo)
+    x =  np.cos(dec) * np.sin(ra - ra0) / cosc      # radians
+    y = (np.cos(dec0)*np.sin(dec) - np.sin(dec0)*np.cos(dec)*np.cos(ra - ra0)) / cosc
 
-    return X - X0, Y - Y0, Z - Z0
+    return x, y
 
+def sky_to_comoving_xy(ra, dec, ra0, dec0, z, cosmology=cosmo):
+    """
+    RA, Dec, RA0, Dec0 in degrees, z is the redshift at which you want comoving coords.
+    Returns X, Y in comoving Mpc relative to (ra0, dec0).
+    """
+    # Step 1: angular TAN projection (radians)
+    x_rad, y_rad = tan_project(ra, dec, ra0, dec0)
+
+    # Step 2: transverse comoving distance at redshift z (Mpc)
+    D_M = cosmology.comoving_transverse_distance(z).value  # Mpc
+
+    # Step 3: convert to comoving Mpc
+    X = D_M * x_rad
+    Y = D_M * y_rad
+
+    return X, Y
