@@ -17,7 +17,7 @@ default_cosmo = FlatLambdaCDM(
 def alpha_shape(points, alpha):
     """
     Compute the alpha shape (concave hull) of a set of points.
-    alpha: smaller value → more detailed boundary (try 0.1–1.0)
+    alpha: larger value → more detailed boundary (try 0.1–1.0)
 
     # Example input
     points = np.column_stack((x, y))
