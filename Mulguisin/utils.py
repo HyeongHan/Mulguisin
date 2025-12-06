@@ -14,14 +14,14 @@ default_cosmo = FlatLambdaCDM(
 )
 
 
-def alpha_shape(points, alpha):
+def alpha_shape(points, alpha=5):
     """
     Compute the alpha shape (concave hull) of a set of points.
     alpha: larger value → more detailed boundary 
 
     # Example input
     points = np.column_stack((x, y))
-    shape = alpha_shape(points, alpha=0.3)
+    shape = alpha_shape(points, alpha=5)
 
     plt.figure(figsize=(6,6))
     plt.scatter(points[:,0], points[:,1], s=5)
