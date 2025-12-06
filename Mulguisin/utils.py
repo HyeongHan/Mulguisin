@@ -1,5 +1,10 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
+from scipy.spatial import ConvexHull
+from scipy.spatial import Delaunay
+from shapely.geometry import Point, MultiPoint
+from shapely.ops import unary_union, polygonize
+
 
 default_cosmo = FlatLambdaCDM(
     H0=67.66,      
@@ -7,6 +12,66 @@ default_cosmo = FlatLambdaCDM(
     Tcmb0=2.7255,  
     Ob0=0.049      
 )
+
+
+def alpha_shape(points, alpha):
+    """
+    Compute the alpha shape (concave hull) of a set of points.
+    alpha: smaller value → more detailed boundary (try 0.1–1.0)
+
+    # Example input
+    points = np.column_stack((x, y))
+    shape = alpha_shape(points, alpha=0.3)
+
+    plt.figure(figsize=(6,6))
+    plt.scatter(points[:,0], points[:,1], s=5)
+    xs, ys = shape.exterior.xy
+    plt.plot(xs, ys, 'r-', linewidth=2)
+
+    plt.title("α-shape / Concave Hull Boundary")
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.show()
+    """
+    if len(points) < 4:
+        return MultiPoint(points).convex_hull
+
+    tri = Delaunay(points)
+    edges = []
+
+    for ia, ib, ic in tri.simplices:
+        pa, pb, pc = points[ia], points[ib], points[ic]
+
+        # Compute lengths of sides
+        a = np.linalg.norm(pb - pc)
+        b = np.linalg.norm(pa - pc)
+        c = np.linalg.norm(pa - pb)
+
+        # Compute triangle area
+        s = (a + b + c) / 2.0
+        area = max(s * (s - a) * (s - b) * (s - c), 0)**0.5
+
+        if area == 0:
+            continue
+
+        # Radius of circumcircle
+        R = a*b*c / (4.0 * area)
+
+        # Keep triangles with small circumradius
+        if R < 1.0 / alpha:
+            edges.append((ia, ib))
+            edges.append((ib, ic))
+            edges.append((ic, ia))
+
+    # Get unique edges
+    edge_set = set(tuple(sorted(e)) for e in edges)
+
+    # Build polygon
+    m = MultiPoint(points)
+    polys = polygonize([
+        [points[e[0]], points[e[1]]] for e in edge_set
+    ])
+    return unary_union(list(polys))
 
 
 def tan_project(ra, dec, ra0, dec0):
